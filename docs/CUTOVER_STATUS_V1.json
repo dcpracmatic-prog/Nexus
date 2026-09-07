@@ -1,0 +1,42 @@
+{
+  "version": "V1",
+  "date": "2026-09-06",
+  "source_archive": "NexusAgent-Studio-validation-lab.zip",
+  "implemented": [
+    "validation-lab-ui",
+    "local-llama-ollama-endpoint",
+    "deterministic-llama-fallback",
+    "logic-engine-in-validation-pipeline",
+    "proto-service-state-context",
+    "labels-posthoc-only",
+    "visible-validation-trace",
+    "real-terminal-ui",
+    "terminal-exec-endpoint"
+  ],
+  "partial": [
+    "validation-command-trace-is-representational",
+    "llama-stop-is-not-process-level",
+    "terminal-is-not-real-sandbox",
+    "document-validation-is-structural",
+    "legacy-ui-organization-remains"
+  ],
+  "design_locked_not_implemented": [
+    "isolated-disposable-sandbox",
+    "baseline-snapshot-reset",
+    "structured-mutation-planner",
+    "llama-logic-intent-dialogue-up-to-five-questions",
+    "safe-intent-redirection",
+    "logic-command-gate",
+    "tdcp-gatekeeper-runtime-integration",
+    "protected-source-and-derived-artifacts",
+    "promotion-gate",
+    "audit-and-replay-controls",
+    "process-streaming-and-real-stop"
+  ],
+  "non_claims": [
+    "not-production-secure",
+    "not-a-real-isolated-sandbox",
+    "TDCP-is-not-yet-integrated-into-this-archive",
+    "existing-terminal-blocklist-is-not-a-security-boundary"
+  ]
+}
