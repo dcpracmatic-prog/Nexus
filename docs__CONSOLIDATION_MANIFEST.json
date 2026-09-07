@@ -1,0 +1,51 @@
+{
+  "name": "Nexus",
+  "version": "V3-CONSOLIDATED",
+  "date": "2026-09-06",
+  "chain": [
+    "V1",
+    "V2",
+    "V3"
+  ],
+  "base_rule": "V3 is cumulative: V1 + V2 + V3. Historical snapshots are retained.",
+  "sources": {
+    "V1": {
+      "filename": "NexusAgent-Studio-Respaldo-v1.zip",
+      "sha256": "9672786c82f0662cb1f9702acb3f6a2e27b88b804aa69433216452426a702890"
+    },
+    "V2": {
+      "filename": "NexusAgent-Studio-Concept-V2.zip",
+      "sha256": "1c44f84b51029d359cff9f1581c3f8c7dcf22421e1cd8fad91058b915a25ad3d"
+    },
+    "V3-original": {
+      "filename": "NexusAgent-Studio-Respaldo-v3.zip",
+      "sha256": "230a9aeb912b39715b4dc223f3e30e326522eee44e3ffe272e1ad94ac60930d2"
+    }
+  },
+  "verification": {
+    "v3_state_preserved": false,
+    "v3_missing_or_changed_files": [
+      "BACKUP_V3.md"
+    ],
+    "historical_snapshots_present": true,
+    "v1_file_count": 37,
+    "v2_file_count": 49,
+    "current_file_count": 58,
+    "v3_state_preserved_except_consolidation_metadata": true,
+    "intentionally_rewritten_files": [
+      "BACKUP_V3.md",
+      "docs/CONSOLIDATION_MANIFEST.json",
+      "docs/VERSION_CHAIN.md"
+    ],
+    "v3_missing_or_changed_functional_files": []
+  },
+  "current_version": "V4-VISION-ARCHITECTURE-1.0",
+  "base_backup": "Nexus.zip (190 entries)",
+  "preserved_history": [
+    "v1",
+    "v2",
+    "v3"
+  ],
+  "fundamentals": "docs/FUNDAMENTALES.md",
+  "acta": "docs/ACTA_CONCEPTO_NEXUS.md"
+}

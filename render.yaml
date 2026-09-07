@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: nexusagent-studio
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NEXUS_LEGACY_TOOLS_ENABLED
+        value: "false"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OLLAMA_URL
+        sync: false
+      - key: LLAMA_MODEL
+        sync: false
+      - key: NEXUS_SANDBOX_TTL_MS
+        value: "600000"
+      - key: NEXUS_REQUIRE_MEMORY_SANDBOX
+        value: "true"

@@ -1,0 +1,35 @@
+{
+  "version": "NEXUS V1 OPERATIVA + ARBITRAJE DETERMINISTA INTEGRADO",
+  "base": "Nexus-V4-Vision-Architecture-1_3-Descarga-Documentos.zip",
+  "current_path": "nexus/",
+  "previous_exact_snapshot": "nexus/history/v5/",
+  "historical_snapshots": [
+    "history/v1/",
+    "history/v2/",
+    "history/v3/"
+  ],
+  "implemented": [
+    "tab_isolation",
+    "explicit_import_transfer",
+    "capability_registry",
+    "llama_create_analyze",
+    "mvp_exit_analysis",
+    "release_gate",
+    "cleartext_mvp_download",
+    "encrypted_pkg_backup",
+    "legacy_high_risk_tools_disabled_by_default",
+    "render_health_endpoint",
+    "internal_deterministic_arbitration_in_action_and_command_gates"
+  ],
+  "verification": [
+    "syntax_transpile_modified_files",
+    "runtime_release_gate_test",
+    "yaml_parse_render_blueprint",
+    "runtime_arbitration_integration_tests"
+  ],
+  "not_verified": [
+    "npm install",
+    "npm run lint",
+    "npm run build"
+  ]
+}

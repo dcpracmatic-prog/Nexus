@@ -1,0 +1,34 @@
+{
+  "version": "V2-CONCEPT",
+  "date": "2026-09-06",
+  "base": "NexusAgent-Studio-Respaldo-v1.zip",
+  "status": "CONCEPT_LOCKED_WITH_RUNTIME_SCAFFOLD",
+  "implemented": [
+    "non-compliant-llama-contract",
+    "intent-assessment",
+    "structured-intent-object",
+    "five-question-clarification-limit",
+    "minimum-sufficient-construction-principle",
+    "locality-of-change-principle",
+    "no-silent-mutation-principle",
+    "runtime-operation-gate",
+    "experiment-workspace-scaffold",
+    "explicit-pass-vs-viability-language"
+  ],
+  "partial": [
+    "real-os-isolation",
+    "process-level-llama-stop",
+    "unified-execution-gateway",
+    "tdcp-gatekeeper-runtime-integration",
+    "promotion-gate",
+    "audit-replay",
+    "semantic-pdf-validation"
+  ],
+  "non_claims": [
+    "not-production-secure",
+    "workspace-is-not-a-security-boundary",
+    "tdcp-not-integrated",
+    "pass-does-not-prove-general-viability",
+    "local-llama-availability-does-not-prove-provider-training-is-impossible"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "NexusAgent Studio",
+  "description": "Plataforma de automatización de flujos de trabajo con agentes de IA, respaldo de LLaMA si falla la API, base de datos vectorial persistente y orquestación multi-proyecto.",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
