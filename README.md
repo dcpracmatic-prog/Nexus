@@ -1,79 +1,461 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# **Nexus™**
 
-# Run and deploy your AI Studio app
+«Construye con IA sin perder el control de lo que construiste.»
 
-This contains everything you need to run your app locally.
+Nexus™ es un runtime de creación computacional asistida diseñado para que la inteligencia artificial pueda ayudarte a construir, analizar y experimentar sin convertirse en la autoridad sobre aquello que crea: Nexus separa explícitamente intención, interpretación, capacidades, autorización, ejecución, observación, verificación y liberación, manteniendo al usuario como autoridad sobre lo que quiere hacer y aplicando controles deterministas sobre lo que el sistema puede hacer.
 
-View your app in AI Studio: https://ai.studio/apps/c2c2b8d9-592e-4c2b-a89e-d85758d2245c
+¿Qué es Nexus?
 
-## Run Locally
+Nexus convierte la interacción con IA en un proceso gobernado de creación.
 
-**Prerequisites:**  Node.js
+En lugar de permitir que un modelo interprete una instrucción y ejecute directamente cualquier acción, Nexus introduce una cadena de control:
+
+INTENCIÓN DEL USUARIO
+        ↓
+INTERPRETACIÓN
+        ↓
+OPERACIÓN
+        ↓
+ALCANCE
+        ↓
+AUTORIZACIÓN
+        ↓
+LÓGICA
+        ↓
+SANDBOX
+        ↓
+EJECUCIÓN
+        ↓
+OBSERVACIÓN
+        ↓
+VERIFICACIÓN
+        ↓
+DECISIÓN
+        ↓
+PROMOCIÓN EXPLÍCITA
+
+La idea fundamental es sencilla:
+
+«La inteligencia puede proponer. La autoridad decide.»
+
+Un modelo puede interpretar una intención, generar una propuesta o analizar un resultado, pero no obtiene automáticamente permiso para modificar recursos, ejecutar operaciones, acceder a capacidades externas o publicar una creación.
+
+El problema que Nexus aborda
+
+Los sistemas de creación asistida por IA suelen combinar demasiadas responsabilidades dentro del mismo flujo:
+
+- interpretar lo que quiere el usuario;
+- generar contenido;
+- ejecutar acciones;
+- acceder a herramientas;
+- modificar recursos;
+- utilizar credenciales;
+- decidir si el resultado es correcto;
+- y determinar cuándo algo está listo para salir del sistema.
+
+Nexus separa esas responsabilidades.
+
+Esto permite construir con IA manteniendo una frontera clara entre:
+
+Inteligencia ≠ Autoridad
+Conectar ≠ Autorizar
+Ejecutar ≠ Publicar
+Crear ≠ Liberar
+Validar ≠ Promover
+Acceder ≠ Poseer autoridad
+
+Cómo funciona
+
+Nexus trabaja mediante módulos especializados que permiten construir y analizar una creación sin obligar al sistema a convertirla inmediatamente en un producto externo.
+
+Create
+
+Espacio para construir y desarrollar.
+
+El usuario puede proporcionar información, archivos y contexto explícitamente. El sistema puede utilizar inteligencia artificial para ayudar con la interpretación y construcción, pero la autoridad permanece fuera del modelo.
+
+Analyze
+
+Permite estudiar una creación, sus componentes y su comportamiento.
+
+El análisis puede utilizar contexto proporcionado explícitamente por el usuario y producir observaciones que posteriormente pueden convertirse en evidencia.
+
+Experiment
+
+Espacio para experimentar sin convertir automáticamente una prueba en una modificación permanente.
+
+Las operaciones experimentales utilizan estado controlado y efímero.
+
+Resources
+
+Permite trabajar con recursos disponibles para Nexus.
+
+El acceso a una capacidad no implica autorización global para utilizarla.
+
+Management
+
+Permite establecer relaciones explícitas entre los elementos que el usuario decide vincular.
+
+Nexus no asume que dos módulos, recursos o componentes están relacionados simplemente porque puedan estarlo.
+
+Render
+
+Permite visualizar y revisar el resultado.
+
+Render representa una etapa de presentación y evaluación. Render no significa publicación.
+
+Capacidades externas
+
+Nexus puede trabajar con diferentes tipos de capacidades:
+
+- modelos de IA;
+- APIs;
+- SDKs;
+- MCP;
+- almacenamiento;
+- bases de datos;
+- servicios cloud;
+- cómputo;
+- repositorios.
+
+Una capacidad se registra y posteriormente se somete a las restricciones correspondientes.
+
+El principio fundamental es:
+
+CREDENCIAL ≠ AUTORIDAD GLOBAL
+
+Una credencial puede permitir técnicamente una operación, pero Nexus determina si esa operación está permitida dentro del contexto y alcance solicitado.
+
+Inteligencia artificial
+
+Nexus puede utilizar modelos locales o externos.
+
+La arquitectura permite trabajar con diferentes proveedores y modelos sin convertir ninguno de ellos en la autoridad del sistema.
+
+El flujo conceptual es:
+
+MODELO
+  ↓
+INTERPRETACIÓN
+  ↓
+INTENCIÓN NEXUS
+  ↓
+REGLAS Y AUTORIZACIÓN
+  ↓
+ACTION GATE
+  ↓
+EJECUCIÓN
+
+El modelo puede aportar inteligencia semántica.
+
+El runtime conserva el control operacional.
+
+Action Gate
+
+El Action Gate constituye una frontera entre una operación solicitada y su ejecución.
+
+Antes de permitir una acción se evalúan elementos como:
+
+- capacidad solicitada;
+- operación;
+- módulo autorizado;
+- alcance;
+- destino;
+- autorización del usuario;
+- permisos requeridos;
+- restricciones deterministas.
+
+Una operación que no cumple las condiciones necesarias no debe ejecutarse simplemente porque el modelo la haya solicitado.
+
+Arbitraje determinista
+
+Nexus incorpora un mecanismo interno de arbitraje determinista para evaluar observaciones y restricciones.
+
+Las decisiones fundamentales son:
+
+PASS
+REVIEW
+REJECT
+
+El sistema puede detectar, por ejemplo:
+
+- operaciones no autorizadas;
+- acceso fuera del alcance;
+- recursos protegidos sin autorización;
+- conflictos entre observaciones;
+- condiciones que requieren revisión.
+
+Cuando existen señales incompatibles dentro del mismo contexto, el sistema puede producir:
+
+REVIEW
+
+en lugar de resolver silenciosamente el conflicto.
+
+Esto permite mantener separadas la interpretación probabilística de la IA y la decisión determinista del runtime.
+
+Sandbox
+
+Las operaciones que necesitan ejecución se mantienen dentro de un entorno controlado.
+
+El sandbox de Nexus está diseñado para:
+
+- limitar el tiempo de ejecución;
+- limitar la salida;
+- utilizar estado efímero;
+- evitar ejecución arbitraria de shell;
+- destruir el estado temporal después de su uso;
+- impedir que una prueba se convierta automáticamente en una modificación persistente.
+
+La implementación actual representa una frontera de aislamiento a nivel de proceso/aplicación. No pretende sustituir una frontera de seguridad de kernel, contenedor o máquina virtual para ejecutar código arbitrariamente no confiable.
+
+Nexus evita presentar como garantía de seguridad aquello que técnicamente no puede garantizar.
+
+Evidencia antes de afirmar éxito
+
+Nexus diferencia entre haber creado algo y haber demostrado que funciona.
+
+La evidencia se entiende progresivamente:
+
+IMPLEMENTED
+    ↓
+EXECUTED
+    ↓
+TESTED
+    ↓
+VERIFIED
+    ↓
+VALIDATED
+    ↓
+PROMOTABLE
+    ↓
+EXTERNAL
+
+Por ello:
+
+«No Evidence → No Success Claim»
+
+La existencia de un archivo, una ejecución o una respuesta de un modelo no constituye por sí misma una demostración de que el resultado sea correcto.
+
+Promoción y liberación
+
+Una creación puede existir dentro de Nexus sin estar lista para salir.
+
+El proceso de liberación analiza el artefacto y su evidencia antes de permitir una promoción.
+
+La separación es deliberada:
+
+CREAR
+  ≠
+LIBERAR
+
+Un resultado puede:
+
+- permanecer como experimento;
+- requerir revisión;
+- ser rechazado;
+- continuar dentro del sandbox;
+- o ser promovido después de cumplir las condiciones requeridas.
+
+La liberación externa requiere autorización explícita.
+
+Paquetes ".nexus.pkg"
+
+Nexus utiliza un formato de paquete persistente para conservar el estado computacional interno de una creación.
+
+El paquete puede contener información como:
+
+- identidad;
+- manifiesto;
+- recursos;
+- componentes;
+- relaciones;
+- políticas;
+- experimentos;
+- procedencia;
+- evidencia;
+- artefactos;
+- estado de ejecución.
+
+El paquete ".nexus.pkg" funciona como contenedor interno persistente y puede utilizar cifrado para mantener el contenido dentro de la frontera operacional de Nexus.
+
+Esto no debe confundirse con la publicación de una aplicación.
+
+GUARDAR ≠ PUBLICAR
+
+Frontera externa
+
+La arquitectura busca mantener una separación explícita entre Nexus y el mundo exterior:
+
+MUNDO EXTERNO
+      ↓
+     GATE
+      ↓
+    NEXUS
+      ↓
+NEXUS PACKAGE
+      ↓
+   SANDBOX
+
+Y para una salida:
+
+SANDBOX
+   ↓
+VERIFICACIÓN
+   ↓
+PROMOTION GATE
+   ↓
+AUTORIZACIÓN
+   ↓
+GATE
+   ↓
+MUNDO EXTERNO
+
+Una creación no validada permanece dentro del sistema por defecto.
+
+Privacidad y control
+
+Nexus sigue un enfoque de minimización de exposición.
+
+La arquitectura permite controlar:
+
+- qué capacidad se utiliza;
+- qué operación se solicita;
+- desde qué módulo;
+- con qué alcance;
+- hacia qué destino;
+- bajo qué autorización.
+
+Cuando se utilizan proveedores externos, Nexus puede controlar qué información se envía desde el runtime y bajo qué autorización, pero las políticas posteriores de tratamiento de datos del proveedor externo siguen siendo responsabilidad de dicho proveedor.
+
+Para escenarios donde la máxima contención sea necesaria, los modelos locales permiten evitar el envío de información fuera del entorno controlado.
+
+Seguridad por diseño
+
+Nexus utiliza una estrategia de contención múltiple:
+
+CONTROL DE CAPACIDAD
+        +
+AUTORIZACIÓN
+        +
+ARBITRAJE DETERMINISTA
+        +
+ACTION GATE
+        +
+SANDBOX
+        +
+EVIDENCIA
+        +
+PROMOTION GATE
+
+Ninguna de estas capas pretende sustituir a las demás.
+
+Una credencial no sustituye autorización.
+
+Un sandbox no demuestra corrección.
+
+Una prueba no equivale a validación.
+
+Una validación no equivale a publicación.
+
+Filosofía
+
+Nexus parte de una premisa:
+
+«Una visión clara + interacción estratégica = creación cada vez más certera.»
+
+“Certera” no significa perfecta.
+
+Significa que el resultado puede evaluarse respecto de una intención, un contexto, unas restricciones y una evidencia concretas.
+
+Nexus no intenta eliminar la incertidumbre de la creación asistida por IA.
+
+Intenta hacerla visible, controlable y verificable.
+
+Arquitectura conceptual
+
+                    ┌───────────────────┐
+                    │      USUARIO         │
+                    │     INTENCIÓN        │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │     NEXUS AI         │
+                    │   INTERPRETACIÓN     │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │  INTENT RESOLVER     │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │  OPERATION OBJECT     │
+                    └─────────┬─────────┘
+                              │
+                 ┌────────────┴────────────┐
+                 ▼                         ▼
+        ┌─────────────────┐       ┌─────────────────┐
+        │  CAPABILITIES      │       │     LOGIC          │
+        │  AUTHORIZATION     │       │   ARBITRATION      │
+        └────────┬────────┘       └────────┬────────┘
+                 └────────────┬────────────┘
+                              ▼
+                    ┌───────────────────┐
+                    │    ACTION GATE       │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │      SANDBOX         │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │    OBSERVATION       │
+                    │   VERIFICATION       │
+                    └─────────┬─────────┘
+                              │
+                              ▼
+                    ┌───────────────────┐
+                    │ PROMOTION / REVIEW   │
+                    └─────────┬─────────┘
+                              │
+                         EXPLICIT
+                       AUTHORIZATION
+                              │
+                              ▼
+                         EXTERNAL
+
+Principios fundamentales
+
+Nexus se construye alrededor de estos principios:
+
+1. El usuario conserva la autoridad sobre la intención.
+2. La inteligencia artificial no obtiene autoridad automáticamente.
+3. Las capacidades externas requieren autorización.
+4. Las operaciones deben respetar su alcance.
+5. Las pruebas deben producir evidencia.
+6. Las creaciones no validadas permanecen contenidas.
+7. La ejecución no implica publicación.
+8. La validación no implica promoción automática.
+9. Los conflictos deben hacerse visibles.
+10. Las limitaciones del sistema deben declararse explícitamente.
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Nexus no intenta construir una IA que tenga más control.
 
+Intenta construir un entorno donde la IA pueda ser más útil sin convertirse en la autoridad sobre lo que el usuario está construyendo.
 
-## Laboratorio de Validación
+«Construye con IA.
+Conserva la intención.
+Controla la ejecución.
+Exige evidencia.
+Decide qué sale.
 
-La pestaña **Ajustes / Laboratorio** integra un flujo de validación orientado a usuarios técnicos y no técnicos:
+Licencia
 
-- Subida de CSV, JSON, JSONL, TXT, Markdown y LOG.
-- Solicitud en lenguaje natural.
-- LLaMA local/gratuito como intérprete y asistente, con Ollama opcional mediante `OLLAMA_URL` y `LLAMA_MODEL`.
-- Arbitraje determinista interno del runtime; la etiqueta no entra en la decisión.
-- Contexto `proto + service + state` cuando está presente.
-- Separación `PASS / REVIEW / REJECT / REFERENCE`.
-- Métricas e invariantes visibles.
-- Terminal real integrada para inspección y ejecución manual.
-- Botón de parada para el runtime LLaMA/proceso activo.
+Nexus™ se distribuye bajo la licencia:
 
-### Principio
-
-`LLaMA interpreta -> NEXUS arbitra -> terminal demuestra -> usuario inspecciona`
-
-La IA no debe convertirse en autoridad por sí misma. Las etiquetas, cuando existen, se reservan para evaluación post-hoc. La validación debe mostrar qué se ejecutó, con qué evidencia y qué resultado produjo.
-
-### LLaMA local
-
-El chat puede conectarse a un servidor Ollama local. Por defecto se intenta `http://127.0.0.1:11434/api/chat` con `llama3.2:3b`; estos valores se pueden cambiar mediante variables de entorno. Si Ollama no está disponible, la aplicación mantiene un resumen local determinista y no inventa una respuesta de modelo.
-
-### Alcance de esta versión
-
-Esta entrega consolida la interfaz y el pipeline de prueba. No presenta las heurísticas de MORPH como prueba formal de optimalidad, ni convierte los stubs criptográficos de TDCP en seguridad de producción.
-
-## Corte de Caja — Respaldo V1
-
-Esta copia queda congelada como respaldo de arquitectura y código. El nuevo diseño de V1 separa explícitamente: usuario (autoridad de intención), interpretación semántica, arbitraje determinista interno, TDCP/Gatekeeper (autoridad y enforcement de recursos) y sandbox (experimentación mutable y descartable).
-
-La documentación `BACKUP_V1.md` y `docs/ARCHITECTURE_V1.md` distingue lo que ya funciona de lo que queda definido para la siguiente implementación. En particular, el terminal y la ejecución actuales todavía no constituyen un sandbox de seguridad.
-
-
-## Corte de Concepto V2
-
-V2 convierte el laboratorio en el inicio de un Runtime Control Plane: LLaMA evalúa intención de forma técnica, ética y no complaciente; el runtime aplica arbitraje determinista; los experimentos reciben workspace/base/candidate/evidence; y la promoción queda separada de la ejecución.
-
-La regla operativa central es: **no afirmar que todo está bien; identificar qué falta para poder afirmarlo**.
-
-Consulta `docs/ARCHITECTURE_V2_CONCEPT.md`, `docs/V2_AUDIT.md` y `docs/CUTOVER_STATUS_V2.json`.
-
-## Visión NEXUS
-
-NEXUS se define como una plataforma de creación computacional gobernada —aplicación, runtime, API y SDK— que funciona como capa de creación sobre ecosistemas como GitHub, Google Workspace y AWS. El trabajo puede avanzar de forma abierta y no lineal. La **Visión final del Usuario** se declara cuando éste decide solicitar la salida de un MVP; NEXUS no modifica silenciosamente esa declaración.
-
-La filosofía queda expresada en dos principios: **“Nada es perfecto. Avanzamos compartiendo lo bueno.”** y **“Una visión clara + interacción estratégica = creación cada vez más certera.”**. La visión completa y su contrato de evolución están en `docs/VISION_NEXUS.md`.
-
-
-## Fundamental: salida gobernada
-La visión final se declara al terminar la creación, no al comenzar. `Preparar salida` evalúa la declaración contra evidencia, excedentes observados y la Constitución NEXUS. Una declaración no es evidencia: `No Evidence → No Success Claim`.
-
-
-## V1 Operativa
-
-La especificación y límites de este corte están en `docs/OPERATIVE_V1.md`.
+`GNU General Public License v3.0 (GPL-3.0).`
