@@ -1,0 +1,16 @@
+{
+  "version": "V3",
+  "base_sha256": "1c44f84b51029d359cff9f1581c3f8c7dcf22421e1cd8fad91058b915a25ad3d",
+  "files": {
+    "src/App.tsx": "a00201b8329867a02893a3eabf0985d5a58dc6486656302fcbad1f5a39960701",
+    "src/components/Header.tsx": "782a208eb6613006c3f8db06200fec654cc2ef9f1562579765c42d0d0f07fcef",
+    "src/components/NexusModules.tsx": "818963191535aeec0310ebf1deabfe0c31b7b2b4eeb5d4b2e46bd38fd1a417ae",
+    "src/components/NexusSettings.tsx": "53b2a51c5736c782cde716619877db84395ff41a2239f400ef6c36038bb2bdc2",
+    "runtime/package/nexusPackage.ts": "0918cc71bd8b4f5895fcbe04c6ebdbec74b2126d7142de12c03e88567d49a93c",
+    "runtime/package/index.ts": "4eb59810de3b2d5ae7b3e8ef61f02336a9be51e943d802f3d17d2bd9f41b5f44",
+    "docs/ARCHITECTURE_V3.md": "54dc411d002451f419d5fb993ce76534e9bafcaf6cd1bb4672a0aadaf47edfda",
+    "docs/V3_AUDIT.md": "e288c2f5ca61909290eda89be3655a242bea65ffc2e170e8e5ddfa3bf0332f21",
+    "BACKUP_V3.md": "c799c0764538ef913645d87df4aa6057f882ac81d27c8d254db9f11f36f6fe3b",
+    "docs/CUTOVER_STATUS_V3.json": "baefe0b522f63e48583088bedd5141f9d4787a9ae58fd45eb54eed507b3fdc12"
+  }
+}
