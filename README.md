@@ -1,4 +1,7 @@
-# NEXUS
+# NEXUS — BASE V1
+
+**Línea de producto:** base oficial (platform) — creación gobernada + exit gate. Ver [`docs/BASE_V1.md`](docs/BASE_V1.md).
+
 
 Plataforma de **creación computacional gobernada**. Una persona —con o sin conocimientos de programación— puede construir aplicaciones, sistemas o artefactos digitales de forma libre y no lineal, conservando el control sobre lo creado y sobre las condiciones bajo las cuales algo puede salir al exterior.
 
@@ -18,12 +21,72 @@ npm install
 npm run dev
 ```
 
+La app arranca en **modo invitado local** (sin Google). Firebase/Google es opcional.
+
 Opcional: producción local
 
 ```bash
 npm run build
 npm start
 ```
+
+
+## Demo competitiva (5 minutos)
+
+Modo **invitado local** por defecto — no hace falta Google/Firebase.
+
+```bash
+git clone <repo> && cd Nexus-git
+npm install
+npm run dev
+# abre http://localhost:3000
+```
+
+1. **Crear (≈1 min)**  
+   - Pestaña **Crear**.  
+   - Intención: `MVP de onboarding gobernado para demos`.  
+   - Nombre: `demo-mvp.md`, formato Markdown.  
+   - Contenido (pegar):
+
+```markdown
+# Demo MVP — NEXUS
+
+## Propósito
+Mostrar creación gobernada: el usuario conserva la autoridad.
+
+## Alcance
+- Artefacto markdown local
+- Sin llamadas de red
+- Salida sólo vía Exit Gate
+
+## Criterio de listo
+El documento describe el flujo Crear → Analizar → Render → READY.
+```
+
+   - **Guardar en Recursos** (queda en el almacén in-app / localStorage).
+
+2. **Analizar (≈1 min)**  
+   - Pestaña **Analizar** → selecciona `demo-mvp.md`.  
+   - **Analizar (local)** → tamaño, estructura, riesgos e invariantes (sin LLM).  
+   - Opcional: refuerzo Ollama si está corriendo.
+
+3. **Management (opcional, ≈30 s)**  
+   - Conecta **Crear → Analizar** (o Analizar → Render) con el artefacto.  
+   - Patrón: `TAB A → USUARIO → TAB B` (sin puente automático).
+
+4. **Render + Exit Gate (≈2 min)**  
+   - Pestaña **Render** → selecciona `demo-mvp.md` (preview con contenido real).  
+   - En **Salida / MVP**: visión final, p.ej.  
+     `MVP documenta onboarding gobernado local sin dependencias externas.`  
+   - Marca: visión confirmada + evidencia de pruebas + aprobación explícita.  
+   - **Evaluar y pasar por Gate** → estado **READY**.  
+   - **Descargar MVP + informe** → artefacto + `*.nexus-report.json`.
+
+5. **Ajustes (opcional)**  
+   - Tema, capacidades externas registradas (registrar ≠ autorizar), respaldo `.nexus.pkg`.
+
+**Wedge que se demuestra:** autoridad del usuario, evidencia real del artefacto, salida controlada. Sin Gemini, sin Validation Lab, sin flota de agentes.
+
 
 ## Validación para desarrolladores (repo, no UI)
 

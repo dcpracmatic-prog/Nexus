@@ -1,23 +1,28 @@
 import React, { useState } from "react";
-import { BrainCircuit, Blocks, Settings, LogIn, LogOut } from "lucide-react";
-import { User } from "firebase/auth";
-import { signInWithGoogle, logOut } from "../lib/firebase";
+import { BrainCircuit, Blocks, Settings, LogIn, LogOut, UserRound } from "lucide-react";
+import type { NexusSessionUser } from "../lib/session";
+import { signInWithGoogle, logOut, isFirebaseAvailable } from "../lib/firebase";
 
 interface HeaderProps {
   currentTab: string;
   setCurrentTab: (tab: string) => void;
-  user: User | null;
+  user: NexusSessionUser;
+  onUserChange: (user: NexusSessionUser) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, user }) => {
+export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, user, onUserChange }) => {
   const [authLoading, setAuthLoading] = useState(false);
+  const [authHint, setAuthHint] = useState("");
 
   const handleSignIn = async () => {
     try {
       setAuthLoading(true);
-      await signInWithGoogle();
-    } catch (err) {
+      setAuthHint("");
+      const remote = await signInWithGoogle();
+      if (remote) onUserChange(remote);
+    } catch (err: any) {
       console.error("Sign in failed:", err);
+      setAuthHint(err?.message || "Google no disponible — sigue en modo invitado.");
     } finally {
       setAuthLoading(false);
     }
@@ -26,6 +31,10 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, user 
   const handleSignOut = async () => {
     try {
       await logOut();
+      const { GUEST_USER, clearSessionUser, persistSessionUser } = await import("../lib/session");
+      clearSessionUser();
+      persistSessionUser(GUEST_USER);
+      onUserChange({ ...GUEST_USER });
     } catch (err) {
       console.error("Sign out failed:", err);
     }
@@ -46,7 +55,9 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, user 
             Creación gobernada · módulos + salida
           </span>
         </div>
-        <span className="text-[11px] text-slate-400 font-mono">LLaMA/Ollama · sin Gemini</span>
+        <span className="text-[11px] text-slate-400 font-mono">
+          {user.isGuest ? "Modo invitado local" : "Sesión sincronizada"} · LLaMA/Ollama opcional
+        </span>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -91,7 +102,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, user 
           </nav>
 
           <div className="flex items-center gap-2.5">
-            {user ? (
+            {!user.isGuest ? (
               <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
                 {user.photoURL ? (
                   <img
@@ -102,12 +113,12 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, user 
                   />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-800 font-semibold flex items-center justify-center text-xs border border-indigo-200">
-                    {(user.displayName || user.email || "U").charAt(0).toUpperCase()}
+                    {(user.displayName || "U").charAt(0).toUpperCase()}
                   </div>
                 )}
                 <div className="hidden lg:block text-left">
                   <p className="text-xs font-semibold text-slate-800 leading-tight truncate max-w-[120px]">
-                    {user.displayName || user.email?.split("@")[0]}
+                    {user.displayName}
                   </p>
                   <p className="text-[10px] text-emerald-600 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
@@ -118,24 +129,34 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, setCurrentTab, user 
                   id="signout-button"
                   onClick={handleSignOut}
                   className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                  title="Cerrar sesión"
+                  title="Volver a invitado local"
                 >
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
-              <button
-                id="signin-button"
-                onClick={handleSignIn}
-                disabled={authLoading}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-all disabled:opacity-50"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                <span>{authLoading ? "Accediendo..." : "Acceder con Google"}</span>
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-semibold">
+                  <UserRound className="w-3.5 h-3.5" />
+                  Invitado local
+                </div>
+                <button
+                  id="signin-button"
+                  onClick={handleSignIn}
+                  disabled={authLoading}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-all disabled:opacity-50"
+                  title={isFirebaseAvailable() ? "Opcional" : "Firebase opcional — demo no lo requiere"}
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>{authLoading ? "Accediendo..." : "Google (opcional)"}</span>
+                </button>
+              </div>
             )}
           </div>
         </div>
+        {authHint && (
+          <p className="pb-2 text-[11px] text-amber-700">{authHint}</p>
+        )}
 
         <div className="flex md:hidden overflow-x-auto py-2 gap-1 border-t border-slate-100 no-scrollbar">
           {navItems.map((item) => {

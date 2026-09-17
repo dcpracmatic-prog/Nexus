@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { User } from "firebase/auth";
 import { subscribeToAuth, fetchCollection, saveDocument, deleteDocument } from "./lib/firebase";
+import {
+  GUEST_USER,
+  loadSessionUser,
+  persistSessionUser,
+  type NexusSessionUser
+} from "./lib/session";
 import { Header } from "./components/Header";
 import { NexusModules, NexusModule, NexusResource, NexusConnection } from "./components/NexusModules";
 import { NexusSettings, NexusSettingsState } from "./components/NexusSettings";
@@ -9,7 +14,12 @@ import { ExitEvaluation } from "../runtime/vision";
 import type { ExitReport } from "../runtime/release/analyzer";
 import { encryptNexusPackage } from "../runtime/package/nexusPackage";
 import { DEFAULT_CAPABILITIES, ExternalCapability } from "../runtime/capabilities";
-import { DEFAULT_RESOURCES } from "./data/initialData";
+import {
+  loadResourcesFromStorage,
+  persistResources,
+  SHARED_STORAGE_KEY,
+  CONNECTIONS_STORAGE_KEY
+} from "./data/initialData";
 
 const DEFAULT_SETTINGS: NexusSettingsState = {
   theme: "light",
@@ -20,46 +30,64 @@ const DEFAULT_SETTINGS: NexusSettingsState = {
   teamEnabled: false
 };
 
+function loadJson<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<NexusSessionUser>(() => loadSessionUser());
   const [currentTab, setCurrentTab] = useState<string>("nexus");
   const [nexusModule, setNexusModule] = useState<NexusModule>("create");
-  const [nexusSettings, setNexusSettings] = useState<NexusSettingsState>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("nexus_settings") || "null") || DEFAULT_SETTINGS;
-    } catch {
-      return DEFAULT_SETTINGS;
-    }
-  });
-  const [sharedByModule, setSharedByModule] = useState<Record<string, string[]>>({
-    create: [],
-    analyze: [],
-    experiment: []
-  });
-  const [connections, setConnections] = useState<NexusConnection[]>([]);
-  const [capabilities, setCapabilities] = useState<ExternalCapability[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("nexus_capabilities") || "null") || DEFAULT_CAPABILITIES;
-    } catch {
-      return DEFAULT_CAPABILITIES;
-    }
-  });
-  const [nexusVision, setNexusVision] = useState<NexusVisionState>(() => {
-    try {
-      return JSON.parse(localStorage.getItem("nexus_vision") || "null") || DEFAULT_NEXUS_VISION;
-    } catch {
-      return DEFAULT_NEXUS_VISION;
-    }
-  });
-  const [declaredVision, setDeclaredVision] = useState<NexusVisionState>(DEFAULT_NEXUS_VISION);
-  const [exitEvaluation, setExitEvaluation] = useState<ExitEvaluation | undefined>(undefined);
+  const [nexusSettings, setNexusSettings] = useState<NexusSettingsState>(() =>
+    loadJson("nexus_settings", DEFAULT_SETTINGS)
+  );
+  const [sharedByModule, setSharedByModule] = useState<Record<string, string[]>>(() =>
+    loadJson(SHARED_STORAGE_KEY, { create: [], analyze: [], experiment: [], resources: [], management: [], render: [] })
+  );
+  const [connections, setConnections] = useState<NexusConnection[]>(() =>
+    loadJson(CONNECTIONS_STORAGE_KEY, [])
+  );
+  const [capabilities, setCapabilities] = useState<ExternalCapability[]>(() =>
+    loadJson("nexus_capabilities", DEFAULT_CAPABILITIES)
+  );
+  const [nexusVision, setNexusVision] = useState<NexusVisionState>(() =>
+    loadJson("nexus_vision", DEFAULT_NEXUS_VISION)
+  );
+  const [declaredVision, setDeclaredVision] = useState<NexusVisionState>(() =>
+    loadJson("nexus_declared_vision", DEFAULT_NEXUS_VISION)
+  );
+  const [exitEvaluation, setExitEvaluation] = useState<ExitEvaluation | undefined>(() =>
+    loadJson("nexus_exit_evaluation", undefined)
+  );
   const [exitReport, setExitReport] = useState<ExitReport | undefined>(undefined);
-  const [nexusResources, setNexusResources] = useState<NexusResource[]>(DEFAULT_RESOURCES);
+  const [nexusResources, setNexusResources] = useState<NexusResource[]>(() => loadResourcesFromStorage());
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", nexusSettings.theme === "dark");
     localStorage.setItem("nexus_settings", JSON.stringify(nexusSettings));
   }, [nexusSettings]);
+
+  useEffect(() => {
+    persistResources(nexusResources);
+  }, [nexusResources]);
+
+  useEffect(() => {
+    localStorage.setItem(SHARED_STORAGE_KEY, JSON.stringify(sharedByModule));
+  }, [sharedByModule]);
+
+  useEffect(() => {
+    localStorage.setItem(CONNECTIONS_STORAGE_KEY, JSON.stringify(connections));
+  }, [connections]);
+
+  useEffect(() => {
+    persistSessionUser(user);
+  }, [user]);
 
   const handleDeclareVision = async (
     vision: NexusVisionState,
@@ -69,7 +97,9 @@ export default function App() {
     setDeclaredVision(vision);
     setExitEvaluation(evaluation);
     setExitReport(report);
-    if (user?.uid) {
+    localStorage.setItem("nexus_declared_vision", JSON.stringify(vision));
+    localStorage.setItem("nexus_exit_evaluation", JSON.stringify(evaluation));
+    if (!user.isGuest) {
       await saveDocument("nexusExit", "declaration", { vision, evaluation, report }, user.uid);
     }
   };
@@ -77,12 +107,37 @@ export default function App() {
   const handleVisionChange = async (vision: NexusVisionState) => {
     setNexusVision(vision);
     localStorage.setItem("nexus_vision", JSON.stringify(vision));
-    if (user?.uid) await saveDocument("nexusVision", "current", vision, user.uid);
+    if (!user.isGuest) await saveDocument("nexusVision", "current", vision, user.uid);
+  };
+
+  const handleUpsertResource = async (resource: NexusResource) => {
+    setNexusResources((prev) => {
+      const idx = prev.findIndex((r) => r.id === resource.id);
+      if (idx >= 0) {
+        const next = [...prev];
+        next[idx] = resource;
+        return next;
+      }
+      return [resource, ...prev];
+    });
+    if (!user.isGuest) await saveDocument("nexusResources", resource.id, resource, user.uid);
+  };
+
+  const handleDeleteResource = async (id: string) => {
+    setNexusResources((prev) => prev.filter((r) => r.id !== id));
+    setSharedByModule((prev) => {
+      const next: Record<string, string[]> = {};
+      for (const [k, ids] of Object.entries(prev)) {
+        next[k] = ids.filter((x) => x !== id);
+      }
+      return next;
+    });
+    await deleteDocument("nexusResources", id);
   };
 
   const handleAddConnection = async (connection: NexusConnection) => {
     setConnections((prev) => [...prev, connection]);
-    await saveDocument("nexusConnections", connection.id, connection, user?.uid);
+    if (!user.isGuest) await saveDocument("nexusConnections", connection.id, connection, user.uid);
   };
 
   const handleDeleteConnection = async (id: string) => {
@@ -94,7 +149,7 @@ export default function App() {
     const all = [capability, ...capabilities.filter((c) => c.id !== capability.id)];
     setCapabilities(all);
     localStorage.setItem("nexus_capabilities", JSON.stringify(all));
-    await saveDocument("nexusCapabilities", capability.id, capability, user?.uid);
+    if (!user.isGuest) await saveDocument("nexusCapabilities", capability.id, capability, user.uid);
   };
 
   const handleToggleCapability = async (id: string) => {
@@ -104,7 +159,7 @@ export default function App() {
     const all = capabilities.map((c) => (c.id === id ? next : c));
     setCapabilities(all);
     localStorage.setItem("nexus_capabilities", JSON.stringify(all));
-    await saveDocument("nexusCapabilities", id, next, user?.uid);
+    if (!user.isGuest) await saveDocument("nexusCapabilities", id, next, user.uid);
   };
 
   const handleDeleteCapability = async (id: string) => {
@@ -119,7 +174,7 @@ export default function App() {
     if (!target) return;
     const next = { ...target, enabled: !target.enabled };
     setConnections((prev) => prev.map((c) => (c.id === id ? next : c)));
-    await saveDocument("nexusConnections", id, next, user?.uid);
+    if (!user.isGuest) await saveDocument("nexusConnections", id, next, user.uid);
   };
 
   const handleToggleShare = (module: NexusModule, resourceId: string) => {
@@ -136,8 +191,13 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = subscribeToAuth(async (currentUser) => {
+      // Prefer guest local unless Firebase actually returns a remote user
+      if (currentUser.isGuest) {
+        // Keep existing guest / don't wipe local work
+        setUser((prev) => (prev.isGuest ? prev : currentUser));
+        return;
+      }
       setUser(currentUser);
-      if (!currentUser) return;
       try {
         const [userConnections, userCapabilities, userVision, exitSaved, userResources] =
           await Promise.all([
@@ -153,7 +213,9 @@ export default function App() {
           setCapabilities(userCapabilities as ExternalCapability[]);
           localStorage.setItem("nexus_capabilities", JSON.stringify(userCapabilities));
         }
-        if (userResources.length > 0) setNexusResources(userResources as NexusResource[]);
+        if (userResources.length > 0) {
+          setNexusResources(userResources as NexusResource[]);
+        }
         if (userVision.length > 0) {
           const currentVision =
             userVision.find((v: { id?: string }) => v.id === "current") || userVision[0];
@@ -184,11 +246,11 @@ export default function App() {
 
   const handleSaveNexusSettings = async (newSettings: NexusSettingsState) => {
     setNexusSettings(newSettings);
-    if (user?.uid) await saveDocument("systemConfigs", "nexus", newSettings, user.uid);
+    if (!user.isGuest) await saveDocument("systemConfigs", "nexus", newSettings, user.uid);
   };
 
   const handleExportNexusPackage = async (passphrase: string) => {
-    const identity = user?.uid || "local-profile";
+    const identity = user.uid || GUEST_USER.uid;
     const envelope = await encryptNexusPackage(identity, passphrase, {
       version: "NEXUS-EXIT-ARCHITECTURE-1.0",
       workspaceContext: nexusVision,
@@ -214,7 +276,12 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 flex flex-col font-sans">
-      <Header currentTab={currentTab} setCurrentTab={setCurrentTab} user={user} />
+      <Header
+        currentTab={currentTab}
+        setCurrentTab={setCurrentTab}
+        user={user}
+        onUserChange={setUser}
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {currentTab === "nexus" && (
@@ -222,6 +289,8 @@ export default function App() {
             active={nexusModule}
             setActive={setNexusModule}
             resources={nexusResources}
+            onUpsertResource={handleUpsertResource}
+            onDeleteResource={handleDeleteResource}
             sharedByModule={sharedByModule}
             onToggleShare={handleToggleShare}
             connections={connections}
@@ -232,7 +301,7 @@ export default function App() {
             onVisionChange={handleVisionChange}
             declaredVision={declaredVision}
             exitEvaluation={exitEvaluation}
-            userId={user?.uid || "local-profile"}
+            userId={user.uid}
             allowExternalPublish={nexusSettings.allowExternalPublish}
             onDeclareVision={handleDeclareVision}
           />

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Download, FileCode2, Lock, ShieldAlert, ShieldCheck, Upload, XCircle } from "lucide-react";
 import { requestRelease } from "../../runtime/promotion/releaseGate";
 import type { ExitEvaluation } from "../../runtime/vision";
@@ -26,6 +26,14 @@ export const NexusExitGate: React.FC<Props> = ({ workspaceContext, declaredVisio
   const [report, setReport] = useState<ExitReport | undefined>(undefined);
   const [result, setResult] = useState<ReleaseResult | undefined>(undefined);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!importedArtifact) return;
+    setArtifactName(importedArtifact.name || "nexus-mvp.json");
+    setArtifactText(importedArtifact.content || "");
+    const lower = (importedArtifact.name || "").toLowerCase();
+    setArtifactKind(lower.endsWith(".md") || lower.endsWith(".txt") ? "document" : lower.endsWith(".json") ? "mixed" : "code");
+  }, [importedArtifact?.name, importedArtifact?.content]);
 
   const liveReport = useMemo(() => artifactText.trim() ? analyzeExitArtifact(artifactName, artifactText, artifactKind) : undefined, [artifactName, artifactText, artifactKind]);
 
