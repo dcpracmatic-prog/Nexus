@@ -1,3 +1,3 @@
-NEXUS BASE V1 — governed creation tools + exit gate (post-Gemini cleanup)
-2026-09-17 · SHA (pre-commit local; parent will update on push)
-Product base: competitive market platform line — modules + settings + exit/vision.
+NEXUS BASE V1 — governed creation tools + exit gate (competitive demo)
+2026-09-17 · SHA eaceab723e2d06bed02c7b4f98a0e8ecb3e1669d
+Product: guest create → analyze → vision → exit gate → download.
