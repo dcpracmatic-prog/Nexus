@@ -11,8 +11,6 @@ services:
         value: 3000
       - key: NEXUS_LEGACY_TOOLS_ENABLED
         value: "false"
-      - key: GEMINI_API_KEY
-        sync: false
       - key: OLLAMA_URL
         sync: false
       - key: LLAMA_MODEL

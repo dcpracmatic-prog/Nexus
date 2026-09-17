@@ -1,6 +1,14 @@
 import { requestRelease } from "../runtime/promotion/releaseGate";
 import { evaluateCapability } from "../runtime/capabilities";
 import { createExplicitTransfer } from "../runtime/isolation";
+import {
+  createSandboxSession,
+  executeSandboxOperation,
+  destroySandboxSession,
+  evaluateActionGate,
+  DEFAULT_CAPABILITIES,
+  arbitrate
+} from "../runtime/index";
 
 const base = {
   userId: "local-test",
@@ -36,9 +44,6 @@ if (transfer.initiatedBy !== "USER" || transfer.from === transfer.to) throw new 
 
 console.log(JSON.stringify({ blocked: blocked.exitEvaluation.status, ready: ready.exitEvaluation.status, report: !!ready.report, capabilityDenied: !capability.allowed, transfer: transfer.initiatedBy }));
 
-
-import { createSandboxSession, executeSandboxOperation, destroySandboxSession, evaluateActionGate, DEFAULT_CAPABILITIES } from "../runtime/index";
-
 const sb = createSandboxSession("test-tab");
 const sbResult = await executeSandboxOperation(sb.id, "TEXT_ANALYZE", "hola nexus");
 if (!sbResult.ok || !(sbResult.result as any)?.sha256) throw new Error("Sandbox TEXT_ANALYZE failed");
@@ -46,8 +51,6 @@ const denied = evaluateActionGate({ capability: DEFAULT_CAPABILITIES[0], module:
 if (denied.allowed) throw new Error("Action Gate allowed unauthorized module");
 destroySandboxSession(sb.id);
 console.log(JSON.stringify({ sandbox: sbResult.ok, actionGateDenied: !denied.allowed }));
-
-import { arbitrate, evaluateActionGate, DEFAULT_CAPABILITIES } from "../runtime/index";
 
 const gateAllowed = evaluateActionGate({
   capability: DEFAULT_CAPABILITIES[0],

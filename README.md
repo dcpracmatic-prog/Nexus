@@ -1,69 +1,70 @@
-## Run Locally
+# NEXUS
 
-**Prerequisites:**  Node.js
+Plataforma de **creación computacional gobernada**. Una persona —con o sin conocimientos de programación— puede construir aplicaciones, sistemas o artefactos digitales de forma libre y no lineal, conservando el control sobre lo creado y sobre las condiciones bajo las cuales algo puede salir al exterior.
 
+NEXUS no sustituye GitHub, Google Workspace, AWS ni otros ecosistemas: actúa como **capa de creación** sobre ellos. La IA **interpreta, informa, organiza y propone**; la **autoridad** sobre intención, alcance, conexión, transformación y salida permanece en el usuario.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+> “Construye con IA sin perder el control de lo que construiste.”  
+> “Nada es perfecto. Avanzamos compartiendo lo bueno.”
 
+## Cómo ejecutar
 
-## Laboratorio de Validación
+**Requisitos:** Node.js
 
-La pestaña **Ajustes / Laboratorio** integra un flujo de validación orientado a usuarios técnicos y no técnicos:
+```bash
+npm install
+npm run dev
+```
 
-- Subida de CSV, JSON, JSONL, TXT, Markdown y LOG.
-- Solicitud en lenguaje natural.
-- LLaMA local/gratuito como intérprete y asistente, con Ollama opcional mediante `OLLAMA_URL` y `LLAMA_MODEL`.
-- Arbitraje determinista interno del runtime; la etiqueta no entra en la decisión.
-- Contexto `proto + service + state` cuando está presente.
-- Separación `PASS / REVIEW / REJECT / REFERENCE`.
-- Métricas e invariantes visibles.
-- Terminal real integrada para inspección y ejecución manual.
-- Botón de parada para el runtime LLaMA/proceso activo.
+Opcional: producción local
 
-### Principio
+```bash
+npm run build
+npm start
+```
 
-`LLaMA interpreta -> NEXUS arbitra -> terminal demuestra -> usuario inspecciona`
+## Intérprete (sin Gemini)
 
-La IA no debe convertirse en autoridad por sí misma. Las etiquetas, cuando existen, se reservan para evaluación post-hoc. La validación debe mostrar qué se ejecutó, con qué evidencia y qué resultado produjo.
+El camino de chat / interpretación es:
 
-### LLaMA local
+1. **LLaMA vía Ollama local** (`OLLAMA_URL`, `LLAMA_MODEL`)
+2. Si Ollama no está disponible → **respaldo determinista local** (no inventa evidencia de modelo)
 
-El chat puede conectarse a un servidor Ollama local. Por defecto se intenta `http://127.0.0.1:11434/api/chat` con `llama3.2:3b`; estos valores se pueden cambiar mediante variables de entorno. Si Ollama no está disponible, la aplicación mantiene un resumen local determinista y no inventa una respuesta de modelo.
+No se requiere `GEMINI_API_KEY`. Copia `.env.example` a `.env` si quieres ajustar Ollama:
 
-### Alcance de esta versión
+```bash
+OLLAMA_URL=http://127.0.0.1:11434/api/chat
+LLAMA_MODEL=llama3.2:3b
+```
 
-Esta entrega consolida la interfaz y el pipeline de prueba. No presenta las heurísticas de MORPH como prueba formal de optimalidad, ni convierte los stubs criptográficos de TDCP en seguridad de producción.
+Principio operativo: `LLaMA interpreta → NEXUS arbitra → evidencia / terminal demuestran → el usuario decide`.
 
-## Corte de Caja — Respaldo V1
+## Documentación canónica
 
-Esta copia queda congelada como respaldo de arquitectura y código. El nuevo diseño de V1 separa explícitamente: usuario (autoridad de intención), interpretación semántica, arbitraje determinista interno, TDCP/Gatekeeper (autoridad y enforcement de recursos) y sandbox (experimentación mutable y descartable).
+Sólo estos cinco documentos en `docs/`:
 
-La documentación `BACKUP_V1.md` y `docs/ARCHITECTURE_V1.md` distingue lo que ya funciona de lo que queda definido para la siguiente implementación. En particular, el terminal y la ejecución actuales todavía no constituyen un sandbox de seguridad.
+| Documento | Contenido |
+|-----------|-----------|
+| [`docs/ACTA_CONCEPTO_NEXUS.md`](docs/ACTA_CONCEPTO_NEXUS.md) | Naturaleza del sistema y principio rector |
+| [`docs/FUNDAMENTALES.md`](docs/FUNDAMENTALES.md) | Autoridad, evidencia, constitución, promoción |
+| [`docs/VISION_NEXUS.md`](docs/VISION_NEXUS.md) | Visión de producto y capa de creación |
+| [`docs/OPERATIVE_V1.md`](docs/OPERATIVE_V1.md) | Corte operativo V1 y límites deliberados |
+| [`docs/SANDBOX_V1.md`](docs/SANDBOX_V1.md) | Sandbox efímero de aplicación (no kernel) |
 
+## Límites honestos de V1 (OPERATIVE_V1)
 
-## Corte de Concepto V2
+- Análisis de artefacto **estático** / por señales; no prueba exhaustiva de comportamiento.
+- Confirmación de pruebas V1 = **evidencia declarada** por el usuario; no ejecución automática completa del MVP.
+- Sandbox de Render = barrera de **aplicación/proceso**, no contenedor/kernel de seguridad.
+- Credenciales de terceros y secretos de producción requieren backend dedicado.
+- Salida JSON = interoperabilidad V1, no empaquetador universal de ejecutables.
+- `Render ≠ publish`. `Execute ≠ expose`. Sólo salida `READY` con aprobación explícita puede promoverse.
+- `No Evidence → No Success Claim`.
 
-V2 convierte el laboratorio en el inicio de un Runtime Control Plane: LLaMA evalúa intención de forma técnica, ética y no complaciente; el runtime aplica arbitraje determinista; los experimentos reciben workspace/base/candidate/evidence; y la promoción queda separada de la ejecución.
+## English (short)
 
-La regla operativa central es: **no afirmar que todo está bien; identificar qué falta para poder afirmarlo**.
+NEXUS is a **governed computational creation** platform: AI interprets; the user keeps authority. Run with Node (`npm install`, `npm run dev`). Interpreter path is **local LLaMA/Ollama** with a deterministic fallback — **not Gemini**. See the five docs above for vision, fundamentals, and V1 limits (sandbox is app-level, not a kernel).
 
-Consulta `docs/ARCHITECTURE_V2_CONCEPT.md`, `docs/V2_AUDIT.md` y `docs/CUTOVER_STATUS_V2.json`.
+## Licencia
 
-## Visión NEXUS
-
-NEXUS se define como una plataforma de creación computacional gobernada —aplicación, runtime, API y SDK— que funciona como capa de creación sobre ecosistemas como GitHub, Google Workspace y AWS. El trabajo puede avanzar de forma abierta y no lineal. La **Visión final del Usuario** se declara cuando éste decide solicitar la salida de un MVP; NEXUS no modifica silenciosamente esa declaración.
-
-La filosofía queda expresada en dos principios: **“Nada es perfecto. Avanzamos compartiendo lo bueno.”** y **“Una visión clara + interacción estratégica = creación cada vez más certera.”**. La visión completa y su contrato de evolución están en `docs/VISION_NEXUS.md`.
-
-
-## Fundamental: salida gobernada
-La visión final se declara al terminar la creación, no al comenzar. `Preparar salida` evalúa la declaración contra evidencia, excedentes observados y la Constitución NEXUS. Una declaración no es evidencia: `No Evidence → No Success Claim`.
-
-
-## V1 Operativa
-
-La especificación y límites de este corte están en `docs/OPERATIVE_V1.md`.
+Ver [`LICENSE`](LICENSE).

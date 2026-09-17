@@ -2,7 +2,6 @@ import express, { Request, Response } from "express";
 import path from "path";
 import { exec, spawn } from "child_process";
 import fs from "fs";
-import { GoogleGenAI } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 import multer from "multer";
 import dotenv from "dotenv";
@@ -35,17 +34,40 @@ const legacyToolGuard = (_req: Request, res: Response, next: () => void) => {
 // Server-side active LOGIC MML Engine configuration
 let currentLogicConfig: LogicEngineConfig = { ...DEFAULT_LOGIC_CONFIG };
 
-// Lazy initialization of GoogleGenAI client
-let genAIClient: GoogleGenAI | null = null;
-function getGenAI(): GoogleGenAI | null {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === "MY_GEMINI_API_KEY") {
+// LLaMA / Ollama local interpreter (optional). Deterministic fallback if unavailable.
+const OLLAMA_URL = process.env.OLLAMA_URL || "http://127.0.0.1:11434/api/chat";
+const LLAMA_MODEL = process.env.LLAMA_MODEL || "llama3.2:3b";
+
+async function callOllamaChat(userPrompt: string, systemPrompt?: string): Promise<{ content: string; modelUsed: string } | null> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12_000);
+    const r = await fetch(OLLAMA_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: LLAMA_MODEL,
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt ||
+              "Eres LLaMA local de NEXUS. Interpretas e informas; no adquieres autoridad. Separa HECHOS, INFERENCIAS, SUPUESTOS, FALTANTES y PRUEBAS REQUERIDAS. Nunca inventes evidencia ni declares éxito sin prueba."
+          },
+          { role: "user", content: userPrompt }
+        ],
+        stream: false
+      })
+    });
+    clearTimeout(timer);
+    if (!r.ok) return null;
+    const data: any = await r.json();
+    const content = data?.message?.content;
+    if (!content || typeof content !== "string") return null;
+    return { content, modelUsed: LLAMA_MODEL };
+  } catch {
     return null;
   }
-  if (!genAIClient) {
-    genAIClient = new GoogleGenAI({ apiKey });
-  }
-  return genAIClient;
 }
 
 // Deterministic MORPH Algorithm Simulation for Maximum Independent Set (MIS)
@@ -241,27 +263,20 @@ function calculateCosineSimilarity(vecA: number[], vecB: number[]): number {
 }
 
 // API Routes
-app.get("/api/health", (req: Request, res: Response) => {
-  const hasGeminiKey = !!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== "MY_GEMINI_API_KEY";
+app.get("/api/status", (_req: Request, res: Response) => {
   res.json({
     status: "ok",
     timestamp: new Date().toISOString(),
-    primaryEngine: hasGeminiKey ? "Gemini Models Available" : "Gemini Key Not Set (Using LLaMA Fallback Engine)",
-    supportedGeminiModels: [
-      "gemini-3.1-pro-preview (High Thinking)",
-      "gemini-3.1-flash-lite (Ultra Low Latency)",
-      "gemini-3.5-flash (Standard Agent Intelligence)",
-      "gemini-3.1-flash-live-preview (Voice Live API)"
-    ],
-    fallbackEngine: {
-      status: "Ready",
-      engine: "LLaMA-3-8B / Qwen2.5 GGUF Fallback Engine",
-      tools: ["MORPH MIS solver", "HBAG SpMM optimizer", "Edge Observer Guardrail"]
+    interpreter: {
+      primary: "LLaMA/Ollama local",
+      ollamaUrl: OLLAMA_URL,
+      model: LLAMA_MODEL,
+      deterministicFallback: true
     },
     vectorStore: {
       status: "Operational",
       embeddingDimension: 64,
-      searchEngine: "Cosine Similarity RAG"
+      searchEngine: "Cosine Similarity RAG (local trigram)"
     }
   });
 });
@@ -272,7 +287,7 @@ app.post("/api/agent/run", async (req: Request, res: Response) => {
     prompt,
     role = "Asistente Especialista",
     systemPrompt = "Eres un agente técnico preciso y eficiente.",
-    modelPreference = "gemini-3.5-flash",
+    modelPreference = "llama-local",
     thinkingMode = false,
     forceFallback = false,
     tools = [],
@@ -344,64 +359,27 @@ app.post("/api/agent/run", async (req: Request, res: Response) => {
     });
   }
 
-  const ai = getGenAI();
-  if (!ai) {
-    // No API key configured, use LLaMA fallback seamlessly
-    const fallbackResult = executeLlamaFallback(prompt + relevantContext, role, systemPrompt, tools);
-    return res.json({
-      ...fallbackResult,
-      fallbackReason: "GEMINI_API_KEY no configurada en el entorno. Conmutado automáticamente a LLaMA de respaldo."
-    });
-  }
-
-  try {
-    let targetModel = modelPreference;
-    let config: any = {
-      systemInstruction: `${systemPrompt}\nRol: ${role}\nImportante: responde de forma estructurada y analítica en español. Separa observación de inferencia.`
-    };
-
-    if (thinkingMode || modelPreference.includes("3.1-pro")) {
-      targetModel = "gemini-3.1-pro-preview";
-      config.thinkingConfig = {
-        thinkingLevel: "HIGH"
-      };
-    } else if (modelPreference.includes("flash-lite")) {
-      targetModel = "gemini-3.1-flash-lite";
-    } else if (modelPreference.includes("3.5-flash")) {
-      targetModel = "gemini-3.5-flash";
-    }
-
-    const fullPrompt = `${prompt}${relevantContext}`;
-    const response = await ai.models.generateContent({
-      model: targetModel,
-      contents: fullPrompt,
-      config
-    });
-
+  const fullPrompt = `${prompt}${relevantContext}`;
+  const system = `${systemPrompt}\nRol: ${role}\nImportante: responde de forma estructurada y analítica en español. Separa observación de inferencia.`;
+  const ollama = await callOllamaChat(fullPrompt, system);
+  if (ollama) {
     const elapsed = parseFloat((performance.now() - startTime).toFixed(2));
-    const content = response.text || "Respuesta completada sin texto explícito.";
-
-    // Run deterministic observer telemetry
-    const observer = runEdgeObserver(content, 0);
-
+    const observer = runEdgeObserver(ollama.content, 0);
     return res.json({
-      content,
-      modelUsed: targetModel,
+      content: ollama.content,
+      modelUsed: ollama.modelUsed,
       fallbackTriggered: false,
       executionTimeMs: elapsed,
-      thinkingModeApplied: thinkingMode || targetModel === "gemini-3.1-pro-preview",
+      thinkingModeApplied: !!thinkingMode,
       edgeObserverTelemetry: observer
     });
-  } catch (err: any) {
-    console.warn("Error invoking Gemini API, initiating failover to LLaMA engine:", err?.message || err);
-    // Automatic fallback to LLaMA
-    const fallbackResult = executeLlamaFallback(prompt + relevantContext, role, systemPrompt, tools);
-    return res.json({
-      ...fallbackResult,
-      fallbackTriggered: true,
-      fallbackReason: `Fallo en API de Gemini (${err?.message || "Error de red/cuota"}). Respaldo LLaMA activado instantáneamente.`
-    });
   }
+
+  const fallbackResult = executeLlamaFallback(prompt + relevantContext, role, systemPrompt, tools);
+  return res.json({
+    ...fallbackResult,
+    fallbackReason: "Ollama no disponible. Usando intérprete determinista local (sin Gemini)."
+  });
 });
 
 // Multi-Agent Workflow Execution
@@ -436,9 +414,11 @@ app.post("/api/workflow/execute", async (req: Request, res: Response) => {
     }
 
     let agentResponse: any;
-    const ai = getGenAI();
+    const ragText = stepVectorContext.length > 0
+      ? `\n\n[Contexto Vectorial Relevante]:\n` + stepVectorContext.map((d: any) => d.content).join("\n---\n")
+      : "";
 
-    if (forceFallback || !ai) {
+    if (forceFallback) {
       agentResponse = executeLlamaFallback(
         stepPrompt,
         step.agentRole || "Agente",
@@ -447,43 +427,25 @@ app.post("/api/workflow/execute", async (req: Request, res: Response) => {
       );
       anyFallbackTriggered = true;
     } else {
-      try {
-        let model = step.model || "gemini-3.5-flash";
-        const config: any = {
-          systemInstruction: step.systemPrompt || `Eres ${step.agentRole || "un agente especializado"}.`
-        };
-
-        if (step.highThinking || model === "gemini-3.1-pro-preview") {
-          model = "gemini-3.1-pro-preview";
-          config.thinkingConfig = { thinkingLevel: "HIGH" };
-        } else if (step.lowLatency || model === "gemini-3.1-flash-lite") {
-          model = "gemini-3.1-flash-lite";
-        }
-
-        const ragText = stepVectorContext.length > 0
-          ? `\n\n[Contexto Vectorial Relevante]:\n` + stepVectorContext.map((d: any) => d.content).join("\n---\n")
-          : "";
-
-        const result = await ai.models.generateContent({
-          model,
-          contents: stepPrompt + ragText,
-          config
-        });
-
+      const ollama = await callOllamaChat(
+        stepPrompt + ragText,
+        step.systemPrompt || `Eres ${step.agentRole || "un agente especializado"}.`
+      );
+      if (ollama) {
         agentResponse = {
-          content: result.text || "",
-          modelUsed: model,
+          content: ollama.content,
+          modelUsed: ollama.modelUsed,
           fallbackTriggered: false,
           executionTimeMs: parseFloat((performance.now() - stepStart).toFixed(2))
         };
-      } catch (err: any) {
+      } else {
         agentResponse = executeLlamaFallback(
           stepPrompt,
           step.agentRole || "Agente",
           step.systemPrompt,
           step.tools || []
         );
-        agentResponse.fallbackReason = `Error en API Gemini: ${err?.message || "Falla de conexión"}`;
+        agentResponse.fallbackReason = "Ollama no disponible; respaldo determinista local.";
         anyFallbackTriggered = true;
       }
     }
@@ -526,33 +488,12 @@ app.post("/api/vector/embed", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Texto requerido." });
   }
 
-  const ai = getGenAI();
-  if (ai) {
-    try {
-      const response = await ai.models.embedContent({
-        model: "text-embedding-004",
-        contents: text
-      });
-      const respAny = response as any;
-      const values = respAny?.embedding?.values || respAny?.embeddings?.[0]?.values;
-      if (values && Array.isArray(values)) {
-        return res.json({
-          embedding: values.slice(0, 64),
-          modelUsed: "text-embedding-004",
-          fallbackTriggered: false
-        });
-      }
-    } catch {
-      // fallback to algorithmic embedding
-    }
-  }
-
-  // Fallback high-density normalized vector embedding
+  // Local deterministic embedding only (no cloud embedding provider).
   const embedding = generateVectorEmbedding(text, 64);
   res.json({
     embedding,
-    modelUsed: "Semantic Trigram Hash Vectorizer (Local Fallback)",
-    fallbackTriggered: true
+    modelUsed: "Semantic Trigram Hash Vectorizer (Local)",
+    fallbackTriggered: false
   });
 });
 
@@ -650,24 +591,17 @@ app.post("/api/voice/interact", async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Transcripción de voz requerida." });
   }
 
-  const ai = getGenAI();
-  const systemPrompt = `Eres un asistente de comando vocal para el estudio de agentes IA. Tu respuesta debe ser concisa (máximo 2 oraciones) y apta para ser sintetizada por voz.`;
-
-  if (ai) {
-    try {
-      const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-lite", // Fast low-latency response for voice loop
-        contents: `[Comando de Voz de Usuario]: ${transcript}\nAgente activo: ${activeAgent || "Supervisor"}\nContexto: ${context || "Ninguno"}`,
-        config: { systemInstruction: systemPrompt }
-      });
-      return res.json({
-        voiceReplyText: response.text || "Comando procesado correctamente.",
-        modelUsed: "gemini-3.1-flash-lite (Live Voice Channel)",
-        fallbackTriggered: false
-      });
-    } catch (err: any) {
-      console.warn("Voice interaction fallback to local response:", err);
-    }
+  const systemPrompt = `Eres un asistente de comando vocal para NEXUS. Tu respuesta debe ser concisa (máximo 2 oraciones) y apta para ser sintetizada por voz.`;
+  const ollama = await callOllamaChat(
+    `[Comando de Voz de Usuario]: ${transcript}\nAgente activo: ${activeAgent || "Supervisor"}\nContexto: ${context || "Ninguno"}`,
+    systemPrompt
+  );
+  if (ollama) {
+    return res.json({
+      voiceReplyText: ollama.content,
+      modelUsed: ollama.modelUsed,
+      fallbackTriggered: false
+    });
   }
 
   res.json({
@@ -888,13 +822,10 @@ app.post("/api/validation/stop", (_req: Request, res: Response) => {
 app.post("/api/llama/chat", async (req: Request, res: Response) => {
   const prompt=String(req.body?.prompt||"");
   if (!prompt) return res.status(400).json({error:"Prompt vacío"});
-  const ollamaUrl=process.env.OLLAMA_URL || "http://127.0.0.1:11434/api/chat";
-  const model=process.env.LLAMA_MODEL || "llama3.2:3b";
   try {
-    const r=await fetch(ollamaUrl,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model,messages:[{role:"system",content:"Eres LLaMA local de NexusAgent V2. Eres un asistente técnico, ético y profesional no complaciente. Tu prioridad es detectar lo que falta antes de afirmar que algo funciona. Separa HECHOS, INFERENCIAS, SUPUESTOS, FALTANTES, RIESGOS y PRUEBAS REQUERIDAS. Nunca inventes evidencia, métricas o éxito. Si la intención es ambigua, formula como máximo cinco preguntas concretas que reduzcan incertidumbre. Si algo es posible pero no está demostrado, dilo explícitamente. No sustituyas al usuario como autoridad ni a LOGIC como gate determinista."},{role:"user",content:prompt}],stream:false})});
-    if (!r.ok) throw new Error(`LLaMA HTTP ${r.status}`);
-    const data:any=await r.json();
-    res.json({reply:data.message?.content||"",model,local:true});
+    const ollama = await callOllamaChat(prompt, "Eres LLaMA local de NEXUS. Eres un asistente técnico, ético y profesional no complaciente. Tu prioridad es detectar lo que falta antes de afirmar que algo funciona. Separa HECHOS, INFERENCIAS, SUPUESTOS, FALTANTES, RIESGOS y PRUEBAS REQUERIDAS. Nunca inventes evidencia, métricas o éxito. Si la intención es ambigua, formula como máximo cinco preguntas concretas que reduzcan incertidumbre. Si algo es posible pero no está demostrado, dilo explícitamente. No sustituyas al usuario como autoridad ni a LOGIC como gate determinista.");
+    if (!ollama) throw new Error("Ollama unavailable");
+    res.json({reply:ollama.content,model:ollama.modelUsed,local:true});
   } catch {
     res.json({reply:localLlamaSummary(prompt,{rows:0,candidateConflicts:0,logic:null}),model:"local-fallback",local:true});
   }

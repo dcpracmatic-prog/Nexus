@@ -23,3 +23,5 @@ export type { SandboxSession, SandboxResult, SandboxOperation, SandboxPolicy } f
 export { resolveSecretReference } from "./secrets";
 export type { SecretReference } from "./secrets";
 
+export { arbitrate } from "./logic";
+export type { Observation, Policy, ArbitrationResult, Decision, Claim, Severity, Capability as LogicCapability } from "./logic";
