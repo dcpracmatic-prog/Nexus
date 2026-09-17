@@ -2,6 +2,8 @@
 
 Plataforma de **creación computacional gobernada**. Una persona —con o sin conocimientos de programación— puede construir aplicaciones, sistemas o artefactos digitales de forma libre y no lineal, conservando el control sobre lo creado y sobre las condiciones bajo las cuales algo puede salir al exterior.
 
+**Producto (UI):** módulos funcionales **Crear / Analizar / Experimentar / Recursos / Management / Render**, más **Ajustes** y el **Exit Gate** (salida MVP gobernada) y respaldo `.nexus.pkg` cuando está cableado. La validación de calidad vive en el **repositorio** (scripts CI), no como centro de la interfaz.
+
 NEXUS no sustituye GitHub, Google Workspace, AWS ni otros ecosistemas: actúa como **capa de creación** sobre ellos. La IA **interpreta, informa, organiza y propone**; la **autoridad** sobre intención, alcance, conexión, transformación y salida permanece en el usuario.
 
 > “Construye con IA sin perder el control de lo que construiste.”  
@@ -23,6 +25,16 @@ npm run build
 npm start
 ```
 
+## Validación para desarrolladores (repo, no UI)
+
+```bash
+npm run lint          # Typecheck
+npm run build         # Build cliente + servidor
+npm run test:runtime  # Gate de release / runtime (tests/releaseGate.test.ts)
+```
+
+Estas comprobaciones son calidad de ingeniería en CI/local. **No** hay un “Validation Lab” como producto en la UI.
+
 ## Intérprete (sin Gemini)
 
 El camino de chat / interpretación es:
@@ -37,7 +49,7 @@ OLLAMA_URL=http://127.0.0.1:11434/api/chat
 LLAMA_MODEL=llama3.2:3b
 ```
 
-Principio operativo: `LLaMA interpreta → NEXUS arbitra → evidencia / terminal demuestran → el usuario decide`.
+Principio operativo: `LLaMA interpreta → NEXUS arbitra → evidencia demuestra → el usuario decide`.
 
 ## Documentación canónica
 
@@ -63,7 +75,7 @@ Sólo estos cinco documentos en `docs/`:
 
 ## English (short)
 
-NEXUS is a **governed computational creation** platform: AI interprets; the user keeps authority. Run with Node (`npm install`, `npm run dev`). Interpreter path is **local LLaMA/Ollama** with a deterministic fallback — **not Gemini**. See the five docs above for vision, fundamentals, and V1 limits (sandbox is app-level, not a kernel).
+NEXUS is a **governed computational creation** platform: product UI is creation modules + exit gate; developer validation is `npm run test:runtime` / lint / build. Interpreter path is **local LLaMA/Ollama** with a deterministic fallback — **not Gemini**.
 
 ## Licencia
 
