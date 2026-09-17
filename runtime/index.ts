@@ -1,7 +1,6 @@
 export * from "./types";
 export { assessIntent } from "./intent/assessor";
 export { gateOperation } from "./policy/commandGate";
-export { arbitrate } from "./logic";
 export { evaluateGrant } from "./authorization/resourceAuthority";
 export { createExperiment } from "./experiments/experiment";
 export { hashText } from "./audit/trace";
